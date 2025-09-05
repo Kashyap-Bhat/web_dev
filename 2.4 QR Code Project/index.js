@@ -16,7 +16,10 @@ inquirer
     qr_svg.pipe(fs.createWriteStream('qrImg.png'));
     console.log('qr generated!!');
 
-    writeFile('url.txt', answers.url, 'utf8', callback);
+    fs.writeFile('URL.txt', answers.url, (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+    }); 
 
   })
   .catch((error) => {
