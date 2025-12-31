@@ -12,27 +12,65 @@ const db = new pg.Client({
 
 db.connect();
 
-
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.get("/", async (req, res) => {
-  const result = await db.query("SELECT Distinct(country_code) FROM visited_countries");
+async function visitedCountries(){
+  const result = await db.query("SELECT country_code from visited_countries");
 
   let countries = [];
+
   result.rows.forEach((country) => {
     countries.push(country.country_code)
   });
-  const total = result.rowCount;
+
+  return countries;
+}
+
+app.get("/", async (req, res) => {
+  const result = await db.query("SELECT Distinct(country_code) FROM visited_countries");
+
+  const countries = await visitedCountries();
+  const total = countries.length;
 
   res.render("index.ejs",{
     countries: countries,
     total: total
   })
 });
+
+app.post("/add", async (req, res) => {
+    const input  = req.body.country?.trim();
+
+    try{
+      const result = await db.query("SELECT country_code FROM countries WHERE country_name ILIKE % || $1 || '%'",[input]);
+
+      const data = result.rows[0];
+      const countryCode = data.country_code;
+
+      try{
+        await db.query("INSERT INTO visited_countries (country_code) VALUES ($1) ", [countryCode]);
+        res.redirect("/");
+      }catch(err){
+        const countries = await visitedCountries();
+        res.render("index.ejs",{
+          countries: countries,
+          total: countries.length,
+          error: "Country has already been added, try again."
+        });
+      }
+    }catch(err){
+      const countries = await visitedCountries();
+      res.render("index.ejs", {
+        countries: countries,
+        total: countries.length,
+        error: "Country not found, please try again."
+      })  
+    }
+})
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
