@@ -106,7 +106,7 @@ CREATE TABLE visited_countries (
   id SERIAL PRIMARY KEY,
   country_code CHAR(2) NOT NULL,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  CONSTRAINT unique_user_country UNIQUE (user_id, country_code)
+  UNIQUE (user_id, country_code)
 );
 
 INSERT INTO users (name, color)
