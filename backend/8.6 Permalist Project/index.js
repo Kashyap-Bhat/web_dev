@@ -27,30 +27,48 @@ async function getItems() {
 }
 
 app.get("/", async (req, res) => {
-  await getItems();
-  res.render("index.ejs", {
+  try{
+    await getItems();
+    res.render("index.ejs", {
     listTitle: "Today",
     listItems: items,
   });
+  }catch(err){
+    console.log(err);
+  }
+  
 });
 
 app.post("/add", async (req, res) => {
   const item = req.body.newItem;
+  try{
   await db.query("INSERT INTO  items(title) VALUES ($1)", [item]);
   res.redirect("/");
+  }catch(err){
+    console.log(err);
+  }
 });
 
 app.post("/edit", async(req, res) => {
   const itemId = req.body.updatedItemId;
   const itemTitle = req.body.updatedItemTitle;
+  try{
   await db.query("UPDATE items set title = $1 where id = $2", [itemTitle, itemId])
   res.redirect("/");
+  }catch(err){
+    console.log(err);
+  }
+
 });
 
 app.post("/delete", async(req, res) => {
   const itemId = req.body.deleteItemId;
+  try{
   await db.query("DELETE FROM items where id =$1", [itemId]);
   res.redirect("/");
+  }catch(err){
+    console.log(err);
+  }
 });
 
 app.listen(port, () => {
